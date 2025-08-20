@@ -1,0 +1,1 @@
+welcome<?php /**PATH C:\Laravel_project\evensa_project\resources\views/welcome.blade.php ENDPATH**/ ?>

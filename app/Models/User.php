@@ -12,21 +12,15 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role' // 'prof', 'etudiant', 'directeur'
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
+     * Champs cachés dans les réponses JSON
      */
     protected $hidden = [
         'password',
@@ -34,15 +28,47 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Conversion des types de champs
      */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+
+    // 2. RELATIONS AVEC LES AUTRES MODÈLES
+    // -----------------------------------
+    /**
+     * Relation Many-to-Many avec les instances (départements/clubs)
+     */
+public function instances()
+{
+    return $this->belongsToMany(Instance::class) // Pas besoin de préciser la table si vous suivez les conventions
+                ->using(InstanceUser::class)     // Spécifie le modèle pivot
+                ->withPivot([]);                 // Prêt pour colonnes supplémentai            // Si vous ajoutez des timestamps plus tard
+}
+
+    /**
+     * Relation One-to-Many avec les demandes d'événements (créateur)
+     */
+    public function eventRequests()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->hasMany(EventRequest::class, 'created_by');
+    }
+
+    /**
+     * Relation One-to-Many avec les commentaires
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    // 3. MÉTHODES PERSONNALISÉES (OPTIONNEL)
+    // --------------------------------------
+    /**
+     * Vérifie si l'utilisateur est un administrateur
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'Super Administrateur';
     }
 }
